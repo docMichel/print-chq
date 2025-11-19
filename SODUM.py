@@ -1,0 +1,153 @@
+{
+  "template_name": "Chèque SODUM",
+  "template_id": "null",
+  "image_path": "null",
+  "width": 202,
+  "height": 74.25,
+  "zones": [
+    {
+      "name": "Talon - Numéro",
+      "left": 4,
+      "top": 61.45,
+      "right": 38,
+      "bottom": 71.45,
+      "font": "Helvetica LT Extra Compressed",
+      "fontSize": 10,
+      "fontWeight": "normal",
+      "default": "SODUM-210711-DUMMY-513312",
+      "text": ""
+    },
+    {
+      "name": "Talon - Montant",
+      "left": 4,
+      "top": 17.45,
+      "right": 30,
+      "bottom": 49.45,
+      "font": "Helvetica LT Extra Compressed",
+      "fontSize": 32,
+      "fontWeight": "normal",
+      "default": "1500F",
+      "text": ""
+    },
+    {
+      "name": "Talon - CFP",
+      "left": 24.16,
+      "top": 21.15,
+      "right": 38,
+      "bottom": 37.15,
+      "font": "Helvetica LT Extra Compressed",
+      "fontSize": 16,
+      "fontWeight": "normal",
+      "default": "CFP",
+      "text": ""
+    },
+    {
+      "name": "Talon - Montant lettres",
+      "left": 4,
+      "top": 28.78,
+      "right": 38,
+      "bottom": 33.78,
+      "font": "Helvetica",
+      "fontSize": 5,
+      "fontWeight": "normal",
+      "default": "mille cinq cents CFP",
+      "text": ""
+    },
+    {
+      "name": "Talon - Validité",
+      "left": 4,
+      "top": 31.28,
+      "right": 38,
+      "bottom": 38.78,
+      "font": "Helvetica",
+      "fontSize": 7.5,
+      "fontWeight": "normal",
+      "default": "Validité :02/02/21",
+      "text": ""
+    },
+    {
+      "name": "Corps - Numéro CMC7",
+      "left": 142,
+      "top": 61.75,
+      "right": 202,
+      "bottom": 70.75,
+      "font": "Cmc7",
+      "fontSize": 8,
+      "fontWeight": "bold",
+      "default": "72340-513313-DUMMY-513312",
+      "text": ""
+    },
+    {
+      "name": "Corps - Code-barre",
+      "left": 166,
+      "top": 65.45,
+      "right": 206,
+      "bottom": 71.45,
+      "font": "BARCODE",
+      "fontSize": 24,
+      "fontWeight": "normal",
+      "default": "72340-513313",
+      "text": ""
+    },
+    {
+      "name": "Corps - Montant",
+      "left": 167,
+      "top": 2.45,
+      "right": 197,
+      "bottom": 34.45,
+      "font": "Helvetica LT Extra Compressed",
+      "fontSize": 32,
+      "fontWeight": "normal",
+      "default": "1500F",
+      "text": ""
+    },
+    {
+      "name": "Corps - CFP",
+      "left": 187.16,
+      "top": 6.15,
+      "right": 202,
+      "bottom": 22.15,
+      "font": "Helvetica LT Extra Compressed",
+      "fontSize": 16,
+      "fontWeight": "normal",
+      "default": "CFP",
+      "text": ""
+    },
+    {
+      "name": "Corps - Montant lettres",
+      "left": 167,
+      "top": 13.78,
+      "right": 202,
+      "bottom": 18.78,
+      "font": "Helvetica",
+      "fontSize": 5,
+      "fontWeight": "normal",
+      "default": "mille cinq cents CFP",
+      "text": ""
+    },
+    {
+      "name": "Corps - Validité",
+      "left": 167,
+      "top": 19.95,
+      "right": 202,
+      "bottom": 27.45,
+      "font": "Helvetica",
+      "fontSize": 7.5,
+      "fontWeight": "normal",
+      "default": "Validité :02/02/21",
+      "text": ""
+    },
+    {
+      "name": "Corps - Texte libre",
+      "left": 41,
+      "top": 61.45,
+      "right": 150,
+      "bottom": 70.45,
+      "font": "Comic Sans MS",
+      "fontSize": 9,
+      "fontWeight": "normal",
+      "default": "Joyeux Noël !",
+      "text": ""
+    }
+  ]
+}
