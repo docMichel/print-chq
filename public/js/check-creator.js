@@ -2,6 +2,7 @@
 // ========================================
 // public/js/check-creator.js
 // ========================================
+class CheckCreator {// public/js/check-creator.js - Ajouter le chargement des polices
 class CheckCreator {
     constructor(templateData) {
         this.template = templateData;
@@ -14,17 +15,21 @@ class CheckCreator {
         // Conversion mm vers pixels (96 DPI)
         this.mmToPixel = 96 / 25.4;
 
-        // Taille du canvas en pixels
         this.canvasWidth = Math.round(this.template.width * this.mmToPixel);
         this.canvasHeight = Math.round(this.template.height * this.mmToPixel);
 
+        // Charger les polices
+        this.loadedFonts = new Set();
         this.init();
     }
 
-    init() {
+    async init() {
         // Configuration du canvas
         this.canvas.width = this.canvasWidth;
         this.canvas.height = this.canvasHeight;
+
+        // Charger les polices nécessaires
+        await this.loadRequiredFonts();
 
         // Charger l'image de fond si présente
         if (this.template.image_path) {
@@ -33,37 +38,36 @@ class CheckCreator {
             this.backgroundImage.src = this.template.image_path;
         }
 
-        // Créer le formulaire des zones
         this.createZonesForm();
-
-        // Initialisation
         this.renderPreview();
     }
 
-    mmToPx(mm) {
-        return Math.round(mm * this.mmToPixel);
-    }
+    async loadRequiredFonts() {
+        try {
+            const response = await fetch(BASE_PATH + '/template/fonts');
+            const fonts = await response.json();
 
-    createZonesForm() {
-        const form = document.getElementById('zonesForm');
+            // Charger uniquement les polices utilisées dans les zones
+            const usedFonts = [...new Set(this.zones.map(z => z.font).filter(f => f && f !== 'BARCODE'))];
 
-        if (this.zones.length === 0) {
-            form.innerHTML = '<p class="text-muted">Aucune zone définie pour ce template.</p>';
-            return;
+            const promises = usedFonts.map(fontName => {
+                const fontData = fonts.find(f => f.name === fontName);
+                if (fontData && fontData.path && !this.loadedFonts.has(fontName)) {
+                    const fontFace = new FontFace(fontName, `url(${fontData.path})`);
+                    return fontFace.load()
+                        .then(loadedFace => {
+                            document.fonts.add(loadedFace);
+                            this.loadedFonts.add(fontName);
+                        })
+                        .catch(err => console.warn(`Erreur chargement ${fontName}:`, err));
+                }
+                return Promise.resolve();
+            });
+
+            await Promise.all(promises);
+        } catch (error) {
+            console.warn('Erreur chargement polices:', error);
         }
-
-        form.innerHTML = this.zones.map((zone, index) => `
-            <div class="zone-input-group">
-                <label>${zone.name || 'Zone ' + (index + 1)}:</label>
-                <input 
-                    type="text" 
-                    id="zone_${index}" 
-                    class="form-control" 
-                    placeholder="${zone.default || 'Saisir le texte'}"
-                    value="${zone.default || ''}"
-                    onchange="checkCreator.renderPreview()">
-            </div>
-        `).join('');
     }
 
     renderPreview() {
@@ -92,7 +96,10 @@ class CheckCreator {
 
                 this.ctx.save();
                 this.ctx.fillStyle = '#000000';
-                this.ctx.font = `${zone.fontWeight || 'normal'} ${zone.fontSize || 12}px "${zone.font || 'Arial'}"`;
+
+                // Utiliser la police réelle (pas Arial pour BARCODE en preview)
+                const renderFont = zone.font === 'BARCODE' ? 'Arial' : zone.font || 'Arial';
+                this.ctx.font = `${zone.fontWeight || 'normal'} ${zone.fontSize || 12}px "${renderFont}"`;
                 this.ctx.textBaseline = 'top';
 
                 // Clipper le texte dans la zone
@@ -104,6 +111,33 @@ class CheckCreator {
                 this.ctx.restore();
             }
         });
+    }
+
+    // Reste du code identique...
+    mmToPx(mm) {
+        return Math.round(mm * this.mmToPixel);
+    }
+
+    createZonesForm() {
+        const form = document.getElementById('zonesForm');
+
+        if (this.zones.length === 0) {
+            form.innerHTML = '<p class="text-muted">Aucune zone définie pour ce template.</p>';
+            return;
+        }
+
+        form.innerHTML = this.zones.map((zone, index) => `
+            <div class="zone-input-group">
+                <label>${zone.name || 'Zone ' + (index + 1)}:</label>
+                <input 
+                    type="text" 
+                    id="zone_${index}" 
+                    class="form-control" 
+                    placeholder="${zone.default || 'Saisir le texte'}"
+                    value="${zone.default || ''}"
+                    onchange="checkCreator.renderPreview()">
+            </div>
+        `).join('');
     }
 
     preview() {
@@ -151,7 +185,6 @@ class CheckCreator {
 
             this.generatedJSON = await response.json();
 
-            // Afficher dans la modal
             document.getElementById('jsonOutput').textContent =
                 JSON.stringify(this.generatedJSON, null, 2);
             document.getElementById('jsonModal').style.display = 'flex';
@@ -185,7 +218,6 @@ class CheckCreator {
     }
 }
 
-// Variable globale pour accès depuis les onclick
 let checkCreator;
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof templateData !== 'undefined') {

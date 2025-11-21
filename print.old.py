@@ -2,7 +2,6 @@
 import json
 import sys
 import os
-import subprocess
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
@@ -13,7 +12,6 @@ from reportlab.graphics import renderPDF
 
 # Dossier fonts
 FONTS_DIR = './fonts'
-SPACING_MM = 0  # Espacement entre chèques en mm
 
 # Cache des fonts disponibles
 _available_fonts = {}
@@ -123,7 +121,7 @@ def get_font_name(font, font_weight):
                 return variant.lower().replace(' ', '-')
         
         # Si pas de Bold, utilise la version normale
-        print(f"⚠️ Pas de Bold pour '{font_clean}', version normale utilisée")
+        print(f"⚠️  Pas de Bold pour '{font_clean}', version normale utilisée")
     
     # Version normale
     if register_font(font_clean):
@@ -131,7 +129,7 @@ def get_font_name(font, font_weight):
         return font_clean.lower().replace(' ', '-')
     
     # Fallback Helvetica
-    print(f"⚠️ Font '{font_clean}' introuvable, fallback Helvetica")
+    print(f"⚠️  Font '{font_clean}' introuvable, fallback Helvetica")
     fallback = 'Helvetica-Bold' if font_weight == 'bold' else 'Helvetica'
     return fallback
 
@@ -154,7 +152,7 @@ def draw_zone_debug(c, left, top, right, bottom, color=blue):
     c.rect(left, bottom, right - left, top - bottom, stroke=1, fill=0)
     c.restoreState()
 
-def Xdraw_clipped_text(c, text, left, top, right, bottom, font_name, font_size):
+def draw_clipped_text(c, text, left, top, right, bottom, font_name, font_size):
     """Texte avec clipping"""
     c.saveState()
     
@@ -172,105 +170,7 @@ def Xdraw_clipped_text(c, text, left, top, right, bottom, font_name, font_size):
     
     c.restoreState()
 
-def draw_clipped_text(c, text, left, top, right, bottom, font_name, font_size):
-    """Texte avec clipping"""
-    c.saveState()
-    
-    path = c.beginPath()
-    path.rect(left, bottom, right - left, top - bottom)
-    c.clipPath(path, stroke=0)
-    
-    try:
-        c.setFont(font_name, font_size)
-    except KeyError:
-        c.setFont('Helvetica', font_size)
-    
-    # AVANT:
-    # text_y = top - font_size
-    
-    # APRÈS (aligne la baseline en bas de la zone):
-    text_y = bottom + 1  # +1pt pour un micro-padding
-    
-    c.drawString(left, text_y, str(text))
-    
-    c.restoreState()
-    
-
 def draw_barcode(c, code, left, top, right, bottom, font_size=12, show_text=False):
-    """Dessine un code-barres C128 lisible par douchette"""
-    if not code:
-        debug_print("Barcode vide, ignoré")
-        return
-    
-    width = right - left
-    height = top - bottom
-    
-    # AUGMENTE le calcul de barWidth pour meilleure lisibilité
-    # Ancien: bar_width_mm = font_size / 40  (12→0.3mm trop fin)
-    # Nouveau: minimum 0.4mm, scale avec fontSize
-    bar_width_mm = max(0.4, font_size / 30)  # 12→0.4mm, 18→0.6mm, 24→0.8mm
-    bar_width_points = mm_to_points(bar_width_mm)
-    
-    # Quiet zones : marges blanches OBLIGATOIRES pour douchettes
-    quiet_zone = bar_width_points * 10  # Norme: 10x la largeur d'une barre
-    
-    debug_print(f"Barcode C128: '{code}' | zone: {width:.1f}x{height:.1f}pt | fontSize:{font_size} → barWidth:{bar_width_mm:.2f}mm")
-    
-    try:
-        barcode = code128.Code128(
-            str(code),
-            barHeight=height * 0.85,  # Plus haut = plus lisible
-            barWidth=bar_width_points,
-            humanReadable=show_text,
-            quiet=1  # Active les quiet zones intégrées
-        )
-        
-        barcode_width = barcode.width
-        available_width = width - (2 * quiet_zone)
-        
-        # Vérifie que le barcode rentre avec les quiet zones
-        if barcode_width > available_width:
-            print(f"⚠️  Barcode trop large ({barcode_width:.1f}pt), ajustement automatique")
-            # Recalcule avec barWidth réduit
-            new_bar_width = bar_width_points * (available_width / barcode_width) * 0.85
-            barcode = code128.Code128(
-                str(code),
-                barHeight=height * 0.85,
-                barWidth=max(new_bar_width, mm_to_points(0.3)),  # Minimum 0.3mm
-                humanReadable=show_text,
-                quiet=1
-            )
-            barcode_width = barcode.width
-        
-        # Centre avec quiet zones
-        x_pos = left + quiet_zone + (available_width - barcode_width) / 2
-        y_pos = bottom + (height * 0.05)
-        
-        barcode.drawOn(c, x_pos, y_pos)
-        
-        if DEBUG_MODE:
-            # Affiche les quiet zones en rouge
-            c.saveState()
-            c.setStrokeColor(red)
-            c.setLineWidth(0.3)
-            c.setDash(2, 2)
-            # Quiet zone gauche
-            c.line(left + quiet_zone, bottom, left + quiet_zone, top)
-            # Quiet zone droite  
-            c.line(right - quiet_zone, bottom, right - quiet_zone, top)
-            c.restoreState()
-            draw_zone_debug(c, left, top, right, bottom, red)
-            
-    except Exception as e:
-        print(f"✗ Erreur barcode '{code}': {e}")
-        c.saveState()
-        c.setFont('Helvetica', 8)
-        c.drawString(left + 5, bottom + 5, f"BARCODE ERROR: {code}")
-        c.restoreState()
-
-
-
-def Xdraw_barcode(c, code, left, top, right, bottom, font_size=12, show_text=False):
     """Dessine un code-barres C128"""
     if not code:
         debug_print("Barcode vide, ignoré")
@@ -352,6 +252,9 @@ def draw_cheque(c, template, y_offset=0):
         # BARCODE ?
         if zone_font.upper() == 'BARCODE':
             debug_print(f"  Zone {i+1}: BARCODE '{zone_name}' → '{display_text}'")
+          #  draw_barcode(c, display_text, 
+          #              left, top + y_offset, right, bottom + y_offset,
+          #              bar_width=0.3, show_text=False)
             draw_barcode(c, display_text, 
                          left, top + y_offset, right, bottom + y_offset,
                          font_size=zone.get('fontSize', 12))
@@ -396,7 +299,7 @@ def generate_cheques_pdf(json_data, output_path):
         
         for i in range(count):
             cheque_height = mm_to_points(template['height'])
-            spacing = mm_to_points(SPACING_MM)
+            spacing = mm_to_points(5)
             
             if current_y - cheque_height < 0:
                 page_num += 1
@@ -415,110 +318,21 @@ def generate_cheques_pdf(json_data, output_path):
     print(f"  {cheque_count} chèques sur {page_num} page(s)")
     print(f"{'='*60}\n")
 
-def print_pdf(pdf_path, printer_name):
-    """Imprime le PDF sur une imprimante serveur avec marges à 0"""
-    if not os.path.exists(pdf_path):
-        print(f"✗ Erreur: fichier {pdf_path} introuvable")
-        return False
-    
-    print(f"\n{'='*60}")
-    print(f"🖨️  Impression sur: {printer_name}")
-    print(f"{'='*60}")
-    
-    # Commande lp avec marges à 0
-    cmd = [
-        'lp',
-        '-d', printer_name,
-        '-o', 'media=A4',
-        '-o', 'fit-to-page',
-        '-o', 'page-top=0',
-        '-o', 'page-bottom=0',
-        '-o', 'page-left=0',
-        '-o', 'page-right=0',
-        pdf_path
-    ]
-    
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        print(f"✓ Impression lancée")
-        if result.stdout:
-            print(f"  Job: {result.stdout.strip()}")
-        print(f"{'='*60}\n")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"✗ Erreur d'impression:")
-        print(f"  {e.stderr}")
-        print(f"{'='*60}\n")
-        return False
-    except FileNotFoundError:
-        print(f"✗ Erreur: commande 'lp' introuvable")
-        print(f"  Vérifiez que CUPS est installé")
-        print(f"{'='*60}\n")
-        return False
-
-def list_printers():
-    """Liste les imprimantes disponibles"""
-    print(f"\n{'='*60}")
-    print(f"🖨️  Imprimantes disponibles:")
-    print(f"{'='*60}")
-    
-    try:
-        result = subprocess.run(['lpstat', '-p', '-d'], capture_output=True, text=True, check=True)
-        print(result.stdout)
-        print(f"{'='*60}\n")
-    except subprocess.CalledProcessError as e:
-        print(f"✗ Erreur: {e.stderr}")
-    except FileNotFoundError:
-        print(f"✗ Erreur: commande 'lpstat' introuvable")
-
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: python print.py <input.json> [output.pdf] [--debug] [--print nom_imprimante] [--list-printers]")
-        print("\nOptions:")
-        print("  --debug              Mode debug avec contours")
-        print("  --print NOM          Imprimer directement sur l'imprimante NOM")
-        print("  --list-printers      Lister les imprimantes disponibles")
-        print("\nExemples:")
-        print("  python print.py data.json")
-        print("  python print.py data.json output.pdf")
-        print("  python print.py data.json --print HP_LaserJet")
-        print("  python print.py data.json output.pdf --debug --print Brother_HL")
+        print("Usage: python generate_cheques.py <input.json> [output.pdf] [--debug]")
         sys.exit(1)
     
-    # Parser les arguments
     input_file = sys.argv[1]
     output_file = 'cheques.pdf'
-    printer_name = None
     
-    # Vérifier --list-printers en premier
-    if '--list-printers' in sys.argv:
-        list_printers()
-        sys.exit(0)
-    
-    # Parser les autres arguments
-    i = 2
-    while i < len(sys.argv):
-        arg = sys.argv[i]
+    for arg in sys.argv[2:]:
         if arg == '--debug':
             DEBUG_MODE = True
-        elif arg == '--print':
-            if i + 1 < len(sys.argv):
-                printer_name = sys.argv[i + 1]
-                i += 1
-            else:
-                print("✗ Erreur: --print nécessite un nom d'imprimante")
-                sys.exit(1)
         elif not arg.startswith('--'):
             output_file = arg
-        i += 1
     
-    # Génération du PDF
     with open(input_file, 'r', encoding='utf-8') as f:
         json_data = f.read()
     
     generate_cheques_pdf(json_data, output_file)
-    
-    # Impression si demandée
-    if printer_name:
-        success = print_pdf(output_file, printer_name)
-        sys.exit(0 if success else 1)

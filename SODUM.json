@@ -2,7 +2,7 @@
   "template_name": "Chèque SODUM",
   "template_id": "null",
   "image_path": "null",
-  "width": 202,
+  "width": 210,
   "height": 74.25,
   "zones": [
     {
@@ -86,7 +86,7 @@
       "font": "BARCODE",
       "fontSize": 24,
       "fontWeight": "normal",
-      "default": "72340-513313",
+      "default": "72340-513313-DUMMY-513312",
       "text": ""
     },
     {

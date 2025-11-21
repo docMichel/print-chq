@@ -1,0 +1,134 @@
+[
+    {
+        "top": 61.45,
+        "font": "Helvetica LT Extra Compressed",
+        "left": 4,
+        "name": "Talon - Numéro",
+        "right": 38,
+        "bottom": 71.45,
+        "default": "SODUM-210711-DUMMY-513312",
+        "fontSize": 10,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 15,
+        "font": "Helvetica-LT-Extra-Compressed",
+        "left": 4,
+        "name": "Talon - Montant",
+        "right": 29.21,
+        "bottom": 28.28,
+        "default": "1500F",
+        "fontSize": 32,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 18.15,
+        "font": "Helvetica LT Extra Compressed",
+        "left": 25.16,
+        "name": "Talon - CFP",
+        "right": 39,
+        "bottom": 34.15,
+        "default": "CFP",
+        "fontSize": 16,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 28.78,
+        "font": "Helvetica",
+        "left": 4,
+        "name": "Talon - Montant lettres",
+        "right": 38,
+        "bottom": 33.78,
+        "default": "mille cinq cents CFP",
+        "fontSize": 5,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 31.28,
+        "font": "Helvetica",
+        "left": 4,
+        "name": "Talon - Validité",
+        "right": 38,
+        "bottom": 38.78,
+        "default": "Validité :02/02/21",
+        "fontSize": 7.5,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 61.75,
+        "font": "Cmc7",
+        "left": 142,
+        "name": "Corps - Numéro CMC7",
+        "right": 202,
+        "bottom": 70.75,
+        "default": "72340-513313-DUMMY-513312",
+        "fontSize": 8,
+        "fontWeight": "bold"
+    },
+    {
+        "top": 65.45,
+        "font": "BARCODE",
+        "left": 140.45,
+        "name": "Corps - Code-barre",
+        "right": 200.45,
+        "bottom": 71.45,
+        "default": "72340-513313-DUMMY-513312",
+        "fontSize": 24,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 2.45,
+        "font": "Helvetica LT Extra Compressed",
+        "left": 167,
+        "name": "Corps - Montant",
+        "right": 197,
+        "bottom": 34.45,
+        "default": "1500F",
+        "fontSize": 32,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 6.15,
+        "font": "Helvetica LT Extra Compressed",
+        "left": 187.16,
+        "name": "Corps - CFP",
+        "right": 202,
+        "bottom": 22.15,
+        "default": "CFP",
+        "fontSize": 16,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 13.78,
+        "font": "Helvetica",
+        "left": 167,
+        "name": "Corps - Montant lettres",
+        "right": 202,
+        "bottom": 18.78,
+        "default": "mille cinq cents CFP",
+        "fontSize": 5,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 19.95,
+        "font": "Helvetica",
+        "left": 167,
+        "name": "Corps - Validité",
+        "right": 202,
+        "bottom": 27.45,
+        "default": "Validité :02/02/21",
+        "fontSize": 7.5,
+        "fontWeight": "normal"
+    },
+    {
+        "top": 61.45,
+        "font": "Comic Sans MS",
+        "left": 41,
+        "name": "Corps - Texte libre",
+        "right": 150,
+        "bottom": 70.45,
+        "default": "Joyeux Noël !",
+        "fontSize": 9,
+        "fontWeight": "normal"
+    }
+]

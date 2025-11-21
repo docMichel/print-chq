@@ -84,47 +84,78 @@ class TemplateController
         exit;
     }
 
-    // NOUVELLE MÉTHODE pour charger les polices depuis /fonts
+    // controllers/TemplateController.php - Modifier getFonts()
+    // méthode avec fussy search
     public function getFonts()
     {
         header('Content-Type: application/json');
 
         $fontsDir = __DIR__ . '/../fonts';
-        $fonts = ['BARCODE']; // Ajouter BARCODE en premier
+        $fonts = [
+            ['name' => 'BARCODE', 'path' => null] // Police spéciale
+        ];
 
         if (!is_dir($fontsDir)) {
             echo json_encode($fonts);
             return;
         }
 
-        // Scanner récursivement le dossier fonts
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($fontsDir, RecursiveDirectoryIterator::SKIP_DOTS)
         );
 
+        // controllers/TemplateController.php - Modifier dans getFonts()
         foreach ($iterator as $file) {
             if ($file->isFile()) {
                 $ext = strtolower($file->getExtension());
                 if (in_array($ext, ['ttf', 'otf'])) {
-                    // Extraire le nom du fichier sans extension
                     $fontName = pathinfo($file->getFilename(), PATHINFO_FILENAME);
-
-                    // Nettoyer le nom
                     $fontName = str_replace('_', ' ', $fontName);
 
-                    if (!in_array($fontName, $fonts)) {
-                        $fonts[] = $fontName;
-                    }
+                    // Chemin relatif depuis le dossier fonts
+                    $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen($fontsDir) + 1));
+
+                    $fonts[] = [
+                        'name' => $fontName,
+                        'path' => BASE_PATH . '/fonts/' . $relativePath, // Via la route PHP
+                        'format' => $ext === 'ttf' ? 'truetype' : 'opentype'
+                    ];
                 }
             }
         }
-
-        sort($fonts);
-
-        // Remettre BARCODE en premier
-        $fonts = array_diff($fonts, ['BARCODE']);
-        array_unshift($fonts, 'BARCODE');
+        // Trier par nom (BARCODE reste en premier)
+        usort($fonts, function ($a, $b) {
+            if ($a['name'] === 'BARCODE') return -1;
+            if ($b['name'] === 'BARCODE') return 1;
+            return strcasecmp($a['name'], $b['name']);
+        });
 
         echo json_encode($fonts);
+    }
+
+    // controllers/TemplateController.php
+    public function serveFont($fontPath)
+    {
+        $fontsDir = __DIR__ . '/../fonts';
+        $fullPath = realpath($fontsDir . '/' . $fontPath);
+
+        // Sécurité : vérifier que le chemin est bien dans fonts/
+        if (!$fullPath || strpos($fullPath, realpath($fontsDir)) !== 0) {
+            header('HTTP/1.0 404 Not Found');
+            exit;
+        }
+
+        if (!file_exists($fullPath)) {
+            header('HTTP/1.0 404 Not Found');
+            exit;
+        }
+
+        $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $contentType = $ext === 'ttf' ? 'font/ttf' : 'font/otf';
+
+        header('Content-Type: ' . $contentType);
+        header('Cache-Control: public, max-age=31536000');
+        readfile($fullPath);
+        exit;
     }
 }

@@ -46,7 +46,64 @@ export class CanvasRenderer {
             this.drawZone(zone, index === this.editor.selectedZone);
         });
     }
+    // public/js/editor/CanvasRenderer.js - Modifier drawZone()
+    XdrawZone(zone, isSelected) {
+        const left = this.mmToPx(zone.left);
+        const top = this.mmToPx(zone.top);
+        const width = this.mmToPx(zone.right - zone.left);
+        const height = this.mmToPx(zone.bottom - zone.top);
 
+        // Rectangle semi-transparent
+        this.ctx.fillStyle = isSelected ? 'rgba(52, 152, 219, 0.3)' : 'rgba(149, 165, 166, 0.2)';
+        this.ctx.fillRect(left, top, width, height);
+
+        // Bordure
+        this.ctx.strokeStyle = isSelected ? '#3498db' : '#95a5a6';
+        this.ctx.lineWidth = isSelected ? 2 : 1;
+        this.ctx.strokeRect(left, top, width, height);
+
+        // Texte par défaut si présent
+        if (zone.default) {
+            this.ctx.save();
+            this.ctx.fillStyle = '#2c3e50';
+
+            // Utiliser findBestMatch pour trouver la vraie police
+            const renderFont = this.editor.fontManager.getRenderFont(zone.font || 'Arial');
+            this.ctx.font = `${zone.fontWeight || 'normal'} ${zone.fontSize || 12}px "${renderFont}"`;
+            this.ctx.textBaseline = 'alphabetic'; // baseline normale
+
+            // Clipper le texte dans la zone
+            this.ctx.beginPath();
+            this.ctx.rect(left + 2, top + 2, width - 4, height - 4);
+            this.ctx.clip();
+
+            // Si BARCODE, afficher un indicateur
+            const displayText = zone.font === 'BARCODE'
+                ? `[BARCODE] ${zone.default}`
+                : zone.default;
+
+            this.ctx.fillText(displayText, left + 5, top + 5);
+            this.ctx.restore();
+        } else if (zone.name) {
+            // Nom de la zone si pas de texte par défaut
+            this.ctx.fillStyle = isSelected ? '#2c3e50' : '#7f8c8d';
+            this.ctx.font = '12px sans-serif';
+
+            const displayName = zone.font === 'BARCODE'
+                ? `${zone.name} [BARCODE]`
+                : zone.name;
+
+            this.ctx.fillText(displayName, left + 5, top + 15);
+        }
+
+        // Poignées de redimensionnement si sélectionnée
+        if (isSelected) {
+            const handleSize = 8;
+            this.ctx.fillStyle = '#3498db';
+            this.ctx.fillRect(left - handleSize / 2, top - handleSize / 2, handleSize, handleSize);
+            this.ctx.fillRect(left + width - handleSize / 2, top + height - handleSize / 2, handleSize, handleSize);
+        }
+    }
     drawZone(zone, isSelected) {
         const left = this.mmToPx(zone.left);
         const top = this.mmToPx(zone.top);
@@ -67,14 +124,14 @@ export class CanvasRenderer {
             this.ctx.save();
             this.ctx.fillStyle = '#2c3e50';
 
-            // Utiliser Arial pour afficher si BARCODE
-            const displayFont = this.editor.fontManager.getRenderFont(zone.font || 'Arial');
-            this.ctx.font = `${zone.fontWeight || 'normal'} ${zone.fontSize || 12}px "${displayFont}"`;
-            this.ctx.textBaseline = 'top';
+            // Utiliser findBestMatch pour trouver la vraie police
+            const renderFont = this.editor.fontManager.getRenderFont(zone.font || 'Arial');
+            this.ctx.font = `${zone.fontWeight || 'normal'} ${zone.fontSize || 12}px "${renderFont}"`;
+            this.ctx.textBaseline = 'alphabetic';
 
             // Clipper le texte dans la zone
             this.ctx.beginPath();
-            this.ctx.rect(left + 2, top + 2, width - 4, height - 4);
+            this.ctx.rect(left, top, width, height);
             this.ctx.clip();
 
             // Si BARCODE, afficher un indicateur
@@ -82,30 +139,27 @@ export class CanvasRenderer {
                 ? `[BARCODE] ${zone.default}`
                 : zone.default;
 
-            this.ctx.fillText(displayText, left + 5, top + 5);
+            // CHANGEMENT ICI: baseline en bas du rectangle (comme Python)
+            const textY = top + height - 1; // équivalent à "bottom + 1" en ReportLab
+            this.ctx.fillText(displayText, left + 5, textY);
+
             this.ctx.restore();
         } else if (zone.name) {
             // Nom de la zone si pas de texte par défaut
             this.ctx.fillStyle = isSelected ? '#2c3e50' : '#7f8c8d';
             this.ctx.font = '12px sans-serif';
-
-            // Indiquer si c'est une zone BARCODE
             const displayName = zone.font === 'BARCODE'
                 ? `${zone.name} [BARCODE]`
                 : zone.name;
-
-            this.ctx.fillText(displayName, left + 5, top + 15);
+            // Pour le nom, on peut le laisser centré ou aussi en bas
+            this.ctx.fillText(displayName, left + 5, top + height / 2 + 6);
         }
 
         // Poignées de redimensionnement si sélectionnée
         if (isSelected) {
             const handleSize = 8;
             this.ctx.fillStyle = '#3498db';
-
-            // Top-left
             this.ctx.fillRect(left - handleSize / 2, top - handleSize / 2, handleSize, handleSize);
-
-            // Bottom-right
             this.ctx.fillRect(left + width - handleSize / 2, top + height - handleSize / 2, handleSize, handleSize);
         }
     }

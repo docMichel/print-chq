@@ -13,6 +13,11 @@ function route($uri, $method = 'GET')
 
     $uri = parse_url($uri, PHP_URL_PATH);
 
+    if (preg_match('#^' . preg_quote(BASE_PATH) . '/fonts/(.+)$#', $uri, $matches)) {
+        $controller = new TemplateController();
+        $controller->serveFont($matches[1]);
+        return;
+    }
     // Routes Templates
     if ($uri === '/' || $uri === '/template' || $uri === '/template/index') {
         $controller = new TemplateController();
